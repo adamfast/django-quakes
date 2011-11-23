@@ -1,8 +1,11 @@
 import datetime
 from datetime import timedelta
 from django.conf import settings
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 #from quakes.decorators import json, gzip
 from quakes.models import Quake
+
 
 #@gzip
 #@json
@@ -30,3 +33,12 @@ def earthquakes(request):
             'lon': quake.point.coords[0],
         }
     return data
+
+
+def earthquake_display(request):
+    weekago = datetime.datetime.now() - datetime.timedelta(days=7)
+    quakes = Quake.objects.filter(datetime__gte=weekago).order_by('datetime')
+
+    return render_to_response('earthquakes.html', {
+        'object_list': quakes,
+    }, context_instance=RequestContext(request))
