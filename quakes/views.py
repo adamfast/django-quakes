@@ -9,7 +9,7 @@ from quakes.models import Quake
 def earthquakes(request):
     data = {}
     weekago = datetime.datetime.now() - datetime.timedelta(days=7)
-    quakes = Quake.objects.filter(date__gte=weekago).order_by('date')
+    quakes = Quake.objects.filter(datetime__gte=weekago).order_by('datetime')
     bounds = getattr(settings, 'BOUNDS', None)
     if bounds is not None:
         quakes = quakes.filter(point__contained=bounds)
