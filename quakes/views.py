@@ -1,11 +1,11 @@
 import datetime
 from datetime import timedelta
 from django.conf import settings
-from quakes.decorators import json, gzip
+#from quakes.decorators import json, gzip
 from quakes.models import Quake
 
-@gzip
-@json
+#@gzip
+#@json
 def earthquakes(request):
     data = {}
     weekago = datetime.datetime.now() - datetime.timedelta(days=7)
