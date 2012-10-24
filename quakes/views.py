@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.utils.timezone import now
 #from quakes.decorators import json, gzip
 from quakes.models import Quake
 
@@ -12,15 +13,15 @@ from quakes.models import Quake
 #@json
 def earthquakes(request):
     data = {}
-    weekago = datetime.datetime.now() - datetime.timedelta(days=7)
+    weekago = now() - datetime.timedelta(days=7)
     quakes = Quake.objects.filter(datetime__gte=weekago).order_by('-datetime')
     bounds = getattr(settings, 'BOUNDS', None)
     if bounds is not None:
         quakes = quakes.filter(point__contained=bounds)
     for quake in quakes:
-        if quake.date > datetime.datetime.now() - timedelta(hours=1):
+        if quake.date > now() - timedelta(hours=1):
             timeframe = "h"
-        elif quake.date > datetime.datetime.now() - timedelta(days=1):
+        elif quake.date > now() - timedelta(days=1):
             timeframe = "d"
         else:
             timeframe = "w"
@@ -37,19 +38,19 @@ def earthquakes(request):
 
 
 def earthquake_display(request):
-    weekago = datetime.datetime.now() - datetime.timedelta(days=7)
+    weekago = now() - datetime.timedelta(days=7)
     quakes = Quake.objects.filter(datetime__gte=weekago).order_by('-datetime')
 
-    last_check = cache.get('usgs-poll-last-finished', datetime.datetime(2000, 1, 1))
+    last_check = cache.get('usgs-poll-last-finished', now() - datetime.timedelta(days=365*20))  # default to 20 years ago
     checking = cache.get('usgs-poll-in-progress', False)
     if not checking:
         cache.set('usgs-poll-in-progress', True)
-        latest_quake_ago = datetime.datetime.now() - quakes[0].datetime
-        latest_check_ago = datetime.datetime.now() - last_check
+        latest_quake_ago = now() - quakes[0].datetime
+        latest_check_ago = now() - last_check
         if latest_quake_ago > datetime.timedelta(minutes=5) and latest_check_ago > datetime.timedelta(minutes=5):
             from django.core import management
             management.call_command('load_quakes')
-            cache.set('usgs-poll-last-finished', datetime.datetime.now())
+            cache.set('usgs-poll-last-finished', now())
         cache.delete('usgs-poll-in-progress')
         checking = False
 
